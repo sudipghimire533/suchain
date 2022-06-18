@@ -43,7 +43,7 @@ fn main() -> Result<(), i32> {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 pub enum Command {
     Clear,
     Exit,
@@ -58,6 +58,8 @@ pub enum Command {
     Error(String),
     Unknown(String),
     IncreaseDifficulty(usize),
+    AddRawBlock(Block),
+    GetLastBlock,
 }
 
 impl Command {
@@ -108,6 +110,18 @@ impl Command {
                     Err(e) => Command::Error(e.into()),
                 }
             }
+            "add_raw_block" => {
+                match serde_json::from_str(format!("{{\"AddRawBlock\": {rest}}}").as_str()) {
+                    Ok(a) => a,
+                    Err(err) => {
+                        Command::Error(
+                            format!("While parsing AddRawBlock. Error: {:?}", err)
+                        )
+                    },
+                }
+
+            }
+            "get_last_block" | "last_block" => Command::GetLastBlock,
             cmd => {
                 let convert_res = serde_json::from_str(input.as_str());
                 match convert_res {
@@ -131,6 +145,10 @@ impl Command {
             Command::Operation(op) => perform_operation(node, op),
             Command::IncreaseDifficulty(difficulty) =>
                 increase_difficulty(node, difficulty),
+            Command::AddRawBlock(block) =>
+                add_raw_block(node, block),
+            Command::GetLastBlock =>
+                get_last_block(node)
         }
     }
 }
@@ -150,6 +168,18 @@ fn perform_operation(node_container: &mut Option<Chain>, transaction: Transactio
             let add_res = node.add_block(block);
             if let Err(tx_err) = add_res {
                 println!("Can not perform this transaction. While adding block Error: {tx_err:?}");
+            }
+        }
+    }
+}
+
+fn add_raw_block(node_container: &mut Option<Chain>, block: Block) {
+    match node_container {
+        None => println!("No node loaded. Use new_node operation first"),
+        Some(node) => {
+            let add_res = node.add_block(block);
+            if let Err(tx_err) = add_res {
+                println!("While adding block. Error: {tx_err:?}");
             }
         }
     }
@@ -180,6 +210,17 @@ fn new_node(
     let chain = Chain::new(info.into(), prop, allowance);
 
     *node_container = Some(chain);
+}
+
+pub fn get_last_block(node_container: &mut Option<Chain>) {
+    match node_container {
+        None => println!("None"),
+        Some(node) => {
+            let last_block = node.get_latest_block();
+            let last_block_hash = last_block.get_hash();
+            println!("{last_block_hash}: {last_block}");
+        }
+    }
 }
 
 fn show_help() {

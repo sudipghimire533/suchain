@@ -36,6 +36,14 @@ impl From<PrettyHash> for Hash {
 #[serde(from = "PrettyHash")]
 pub struct Hash([u8; SU_HASHER_LEN]);
 
+impl core::fmt::Display for Hash {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        let to_string = serde_json::to_string_pretty(self)
+            .map_err(|_e| std::fmt::Error)?;
+        write!(f, "{to_string}")
+    }
+}
+
 impl Hash {
     pub fn raw(hash_value: [u8; SU_HASHER_LEN]) -> Self {
         Hash(hash_value)

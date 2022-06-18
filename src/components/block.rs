@@ -19,13 +19,21 @@ pub struct BlockHeader {
     pub parent_block: Hash,
     pub nonce: Nonce,
     pub height: BlockNumber,
-    pub timetamp: u64,
+    pub timestamp: u64,
 }
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Block {
     pub header: BlockHeader,
     pub transactions: TransactionCollection,
+}
+
+impl core::fmt::Display for Block {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        let to_string = serde_json::to_string_pretty(self)
+            .map_err(|_e| std::fmt::Error)?;
+        write!(f, "{to_string}")
+    }
 }
 
 impl PartialEq for BlockHeader {
@@ -44,7 +52,7 @@ impl Block {
                 parent_block: parent_block.get_hash(),
                 nonce: 0,
                 height: parent_block.header.height + 1,
-                timetamp: current_timestamp(),
+                timestamp: current_timestamp(),
             },
             transactions: vec![],
         }
@@ -71,7 +79,7 @@ impl Block {
                 parent_block: parent_hash,
                 nonce,
                 height: block_height,
-                timetamp: current_timestamp(),
+                timestamp: current_timestamp(),
             },
             transactions,
         }
