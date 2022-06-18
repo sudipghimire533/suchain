@@ -32,9 +32,11 @@ fn main() -> Result<(), i32> {
 
         stdin().read_line(&mut input).expect("Error while reading input..");
         input = input.trim().to_string();
+        println!(">>{input}");
 
         let command = Command::construct(input);
         command.execute(&mut node);
+        println!("");
     }
 }
 
