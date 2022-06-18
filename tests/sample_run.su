@@ -1,0 +1,47 @@
+// Clear screen for better view
+clear
+
+// Create new node 
+new_node { "difficulty": 1,"allowance": 1000000, "minimum_balance": 10 }
+
+// Ask for airdrop in given account (hash of string "Alice")
+do_operation {"operation":{"Airdrop":{"receiver":"0xada0018bcd09ed8fc81b323331950a89541d2416fc08b8b1de496d2dd35826b3","amount":100}},"initiator":{"Signed":"0xada0018bcd09ed8fc81b323331950a89541d2416fc08b8b1de496d2dd35826b3"}}
+
+// Transfer fund
+// This should fail because one cannot transfer everything to other
+do_operation {"operation":{"TransferFund":{"sender":"0xada0018bcd09ed8fc81b323331950a89541d2416fc08b8b1de496d2dd35826b3","receiver": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "amount":100}},"initiator":{"Signed":"0xada0018bcd09ed8fc81b323331950a89541d2416fc08b8b1de496d2dd35826b3"}}
+
+// Another airdrop request
+// but here the origin(Signed) and receiver are different. So should fail
+// with insufficient permission
+do_operation {"operation":{"Airdrop":{"receiver":"0xada0018bcd09ed8fc81b323331950a89541d2416fc08b8b1de496d2dd35826b3","amount":100}},"initiator":{"Signed":"0x00000000cd09ed8fc81b323331950a89541d2416fc08b8b1de496d0000000000"}}
+
+set_difficulty 2
+
+// This might take bit longer
+// since we have increased the difficulty
+do_operation {"operation":{"Airdrop":{"receiver":"0xb5d577dc9ce59725e29886632e69ecdf3b6ca49c0a14f4315a2404fc1508672d", "amount":100}},"initiator":{"Signed":"0xb5d577dc9ce59725e29886632e69ecdf3b6ca49c0a14f4315a2404fc1508672d"}}
+
+get_last_block
+
+// This is just random_block
+// The parent hash will be invalid at first place
+// so this block won't be added
+add_raw_block {"header": {"parent_block": "0x0000862d51fda185fcffd665bb9381a04eada08a630fd007d051c7b0bd4cf1fa", "nonce": 100, "height": 3, "timestamp": 1746645}, "transactions": [{"operation": "Empty", "initiator": "Root"}]}
+
+set_difficulty 1
+
+
+do_operation {"operation": "Empty", "initiator": "Root"}
+do_operation {"operation": "Empty", "initiator": "Root"}
+do_operation {"operation": "Empty", "initiator": "Unsigned"}
+do_operation {"operation": "Empty", "initiator": "Unsigned"}
+do_operation {"operation": "Empty", "initiator": "Root"}
+do_operation {"operation": "Empty", "initiator": "Root"}
+do_operation {"operation": "Empty", "initiator": "Root"}
+do_operation {"operation": "Empty", "initiator": "Root"}
+
+show_node
+
+// Quit the program
+quit

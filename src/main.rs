@@ -12,10 +12,7 @@ use chain::Chain;
 use components::consensus::Consensus;
 use components::consensus::ProofOfWork;
 use components::Balance;
-use components::AccountId;
 use components::transaction::Transaction;
-use components::origin::Origin;
-use components::transaction::Operation;
 use components::block::Block;
 
 use serde::Deserialize;
@@ -39,7 +36,6 @@ fn main() -> Result<(), i32> {
 
         let command = Command::construct(input);
         command.execute(&mut node);
-        println!("");
     }
 }
 
