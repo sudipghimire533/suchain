@@ -2,7 +2,12 @@ use crate::components::current_timestamp;
 use crate::components::hash::Hash;
 use crate::components::Nonce;
 use crate::components::BlockNumber;
+use crate::chain::Chain;
+use crate::components::transaction::Transaction;
 use crate::components::transaction::TransactionCollection;
+use crate::components::transaction::TransactionResult;
+use crate::components::consensus::ProofOfWork;
+use crate::components::consensus::Consensus;
 
 use serde::Serialize;
 
@@ -31,6 +36,29 @@ impl PartialEq for BlockHeader {
 }
 
 impl Block {
+    pub fn new(chain: &Chain) -> Self {
+        let parent_block = chain.get_latest_block();
+        Block {
+            header: BlockHeader {
+                parent_block: parent_block.get_hash(),
+                nonce: 0,
+                height: parent_block.header.height + 1,
+                timetamp: current_timestamp(),
+            },
+            transactions: vec![],
+        }
+    }
+
+    pub fn create_and_add(chain: &mut Chain, transactions: Vec<Transaction>) -> TransactionResult {
+        let mut new_block = Self::new(&chain);
+        new_block.transactions = transactions;
+        <ProofOfWork as Consensus>::prepare_block(chain, &mut new_block)
+            .map_err(|e| format!("While preparing block: {e}"))?;
+
+        chain.add_block(new_block)
+            .map_err(|e| format!("While adding block: {e}").into())
+    }
+
     pub fn get_genesis() -> Self {
         let block_height: BlockNumber = 1u32.into();
         let parent_hash: Hash = Hash::raw([0u8; 32]);

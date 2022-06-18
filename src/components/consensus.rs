@@ -11,16 +11,14 @@ pub trait Consensus {
     fn add_new_block(chain: &mut Chain, new_block: Block) -> TransactionResult;
 }
 
+#[derive(Clone, Debug)]
 pub struct ProofOfWork;
 
 impl Consensus for ProofOfWork {
     fn prepare_block(chain: &mut Chain, new_block: &mut Block) -> TransactionResult {
         let difficulty = chain.properties.difficulty;
-        let latest_block = chain
-            .blocks
-            .last()
-            .expect("There will always be atleast one block");
-        
+        let latest_block = chain.get_latest_block();
+
         let latest_block_hash = latest_block.get_hash();
         new_block.header.parent_block = latest_block_hash;
 
@@ -52,9 +50,7 @@ impl Consensus for ProofOfWork {
     }
 
     fn add_new_block(chain: &mut Chain, new_block: Block) -> TransactionResult {
-        let parent_block = chain.blocks
-            .last()
-            .expect("there will always be previous block before adding");
+        let parent_block = chain.get_latest_block();
         
         Self::verify_new_block(&parent_block, &new_block, &chain.properties)
             .map_err(|e| format!("Verifying new block: {e}"))?;

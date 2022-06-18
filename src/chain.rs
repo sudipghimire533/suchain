@@ -12,6 +12,7 @@ use crate::components::transaction::Operation;
 use crate::components::transaction::Transaction;
 use crate::components::transaction::TransactionResult;
 
+#[derive(Clone, Debug)]
 pub struct ChainProperties {
     pub exestinsial_deposit: Balance,
     pub difficulty: usize,
@@ -34,6 +35,7 @@ impl Default for AccountInfo {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct Chain {
     pub chain_info: &'static str,
     pub blocks: BlockCollection,
@@ -82,6 +84,12 @@ impl Chain {
 }
 
 impl Chain {
+    pub fn get_latest_block(&self) -> &Block {
+        self.blocks
+            .last()
+            .expect("There will always be at least one bloock in chain")
+    }
+
     pub fn transfer_fund<'chain>(
         &'chain mut self,
         sender: AccountId,
