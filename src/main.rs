@@ -1,9 +1,13 @@
 use std::time::Duration;
+use std::io::stdin;
+use std::io::stdout;
+use std::io::Write;
 
 pub mod components;
 pub mod chain;
 
 use chain::ChainProperties;
+use chain::Chain;
 use components::consensus::ProofOfWork;
 use components::Balance;
 use components::AccountId;
@@ -13,37 +17,52 @@ use components::transaction::Operation;
 use components::block::Block;
 
 fn main() -> Result<(), i32> {
-    //= Initialize suchain node
-    print!("Creating fresh suchain node...");
-    const SU_CHAIN_INFO: &'static str = "SuChain testnet v0.1";
-    const SU_CHAIN_SUPPLY: Balance = 10_00_000;
-    let suchain_prop = ChainProperties {
-        consensus: ProofOfWork,
-        difficulty: 2,
-        exestinsial_deposit: 50,
-        // For testing purpose let's keep time_tolorant to only 10 second.
-        // But in production chain it ususally is in range of an hour or two
-        time_tolorant: Duration::from_secs(30),
-    };
-    let mut suchain = chain::Chain::new(SU_CHAIN_INFO, suchain_prop, SU_CHAIN_SUPPLY);
-    println!("..Done");
-    println!("Node Info: {suchain:?}\n\n\n");
-    //= Done initialize suchain node
+    println!(".\n.\n.\n.\n.\n");
 
-    // Create a account and ask for airdrop
-    let alice = AccountId::new("Suchain Alice");
-    let alice_airdrop_amount = 100;
-    print!("Creating alice ({alice:?}) and airdropping {alice_airdrop_amount} unit..");
-    let tx_airdrop_alice = Transaction {
-        initiator: Origin::Signed(alice.clone()),
-        operation: Operation::Airdrop {
-            receiver: alice.clone(),
-            amount: alice_airdrop_amount,
+    let mut node: Option<Chain> = None;
+
+    'input_loop: loop {
+        print!("\n>>");
+        stdout().flush().expect("Error while printing to stdout..");
+        let mut input = String::new();
+
+        stdin().read_line(&mut input).expect("Error while reading input..");
+        input = input.trim().to_string();
+        match input.as_str() {
+            "quit" | "exit" => break 'input_loop,
+            "clear" => clear_screen(),
+            "help" => show_help(),
+            "show_node" => show_node(&node),
+
+            _ => unknown_command(input),
         }
-    };
-    let airdrop_alice_result = Block::create_and_add(&mut suchain, vec![tx_airdrop_alice]);
-    assert_eq!(Ok(()), airdrop_alice_result);
-    println!("..Done\n\n");
+    }
 
+    println!("\n.\n.\n.\n\tAnd that's how a great era ended...\n\n");
     Ok(())
+}
+
+fn clear_screen() {
+    println!("\x1b[H\x1b[J");
+}
+
+fn unknown_command(input: String) {
+    println!("\n Command: `{input}` is not valid. type help if you are lost");
+}
+
+fn show_help() {
+println!(r##"
+    suchain help.
+    Sytanx: command <options>[]
+
+    Available command:
+    - clear: clear the screen
+    - help: print this help message
+    - quit: quit this program
+"##);
+}
+
+
+fn show_node<D: core::fmt::Debug>(node: D) {
+    println!("{node:#?}");
 }

@@ -3,8 +3,15 @@ use sha3::Digest;
 use crate::components::SuHasher;
 use crate::components::SU_HASHER_LEN;
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Hash)]
+#[derive(Clone, PartialEq, Eq, Serialize, Hash)]
 pub struct Hash([u8; SU_HASHER_LEN]);
+
+impl core::fmt::Debug for Hash {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let hex_rep = hex::encode(&self.0);
+        write!(f, "0x{hex_rep}")
+    }
+}
 
 impl Hash {
     pub fn raw(hash_value: [u8; SU_HASHER_LEN]) -> Self {
