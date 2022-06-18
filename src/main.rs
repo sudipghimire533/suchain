@@ -22,17 +22,9 @@ use serde::Deserialize;
 use serde::Serialize;
 
 fn main() -> Result<(), i32> {
-    println!(".\n.\n.\n.\n.\n");
+    println!(".\n.\n.\n");
 
     let mut node: Option<Chain> = None;
-
-    let some_address = AccountId::new("Alice");
-    println!("Some address: {}", serde_json::to_string(&some_address).unwrap());
-    let command = r##"do_operation { "operation": { "Airdrop": { "receiver": "0xada0018bcd09ed8fc81b323331950a89541d2416fc08b8b1de496d2dd35826b3", "amount": 100 } }, "initiator": {"Signed": "0xada0018bcd09ed8fc81b323331950a89541d2416fc08b8b1de496d2dd35826b3"} }"##;
-    let cmd = Command::construct(command.to_string());
-    println!("{cmd:?}");
-
-
     loop {
         print!("\n>>");
         stdout().flush().expect("Error while printing to stdout..");
@@ -40,7 +32,7 @@ fn main() -> Result<(), i32> {
 
         stdin().read_line(&mut input).expect("Error while reading input..");
         input = input.trim().to_string();
-        if input.is_empty() {
+        if input.is_empty() || input.starts_with("//") {
             continue;
         }
         println!(">>{input}");
@@ -65,6 +57,7 @@ pub enum Command {
     Operation(Transaction),
     Error(String),
     Unknown(String),
+    IncreaseDifficulty(usize),
 }
 
 impl Command {
@@ -106,6 +99,15 @@ impl Command {
                     },
                 }
             }
+            "increase_difficulty" | "set_difficulty" => {
+                let difficulty_cmd_res = rest.trim().parse::<usize>()
+                    .map_err(|_| "Invalid difficulty paramater. Should have been a number")
+                    .map(|new_difficulty| Command::IncreaseDifficulty(new_difficulty));
+                match difficulty_cmd_res {
+                    Ok(v) => v,
+                    Err(e) => Command::Error(e.into()),
+                }
+            }
             cmd => {
                 let convert_res = serde_json::from_str(input.as_str());
                 match convert_res {
@@ -127,6 +129,8 @@ impl Command {
             Command::Unknown(command) => unknown_command(&command),
             Command::Error(err) => println!("Error parsing comand: {err}"),
             Command::Operation(op) => perform_operation(node, op),
+            Command::IncreaseDifficulty(difficulty) =>
+                increase_difficulty(node, difficulty),
         }
     }
 }
@@ -147,6 +151,15 @@ fn perform_operation(node_container: &mut Option<Chain>, transaction: Transactio
             if let Err(tx_err) = add_res {
                 println!("Can not perform this transaction. While adding block Error: {tx_err:?}");
             }
+        }
+    }
+}
+
+fn increase_difficulty(node_container: &mut Option<Chain>, new_difficulty: usize) {
+    match node_container {
+        None => println!("No node loaded. Use new_node operation first"),
+        Some(node) => {
+            node.properties.difficulty = new_difficulty;
         }
     }
 }
@@ -198,7 +211,7 @@ fn show_node(node: &mut Option<Chain>) {
 }
 
 fn exit_program() {
-    println!("\n.\n.\n.\n\tAnd that's how a great era ended...\n\n");
+    println!("\n.\n.\n\tAnd that's how a great era ended...\n\n");
     std::process::exit(0);
 }
 
