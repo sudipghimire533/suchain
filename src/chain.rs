@@ -51,7 +51,7 @@ pub struct Chain {
 impl core::fmt::Display for Chain {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let chain_as_json = serde_json::to_string_pretty(&self)
-            .map_err(|e| std::fmt::Error)?;
+            .map_err(|_e| std::fmt::Error)?;
         write!(f, "{chain_as_json}")
     }
 }
@@ -122,19 +122,26 @@ impl Chain {
             Err("can't kill sender")?;
         }
 
-        let receiver_info = self.accounts.entry(receiver).or_default();
-        let receiver_balance = receiver_info.balance;
-
-        if receiver_balance + amount < self.properties.exestinsial_deposit {
-            Err("amount too low to create receiver account")?;
-        }
-
-        (*receiver_info).balance
-            .checked_add(amount)
-            .ok_or("receiver balance reached sky")?;
+        self.accounts
+            .entry(receiver.clone())
+            .or_insert_with(Default::default);
+        
+        let mut receiver_increment_res: TransactionResult = Err("receiver amount never incremented".into());
+        self.accounts
+            .entry(receiver)
+            .and_modify(|receiver_info| {
+                let receiver_balance = receiver_info.balance;
+                if receiver_balance + amount < self.properties.exestinsial_deposit {
+                    receiver_increment_res = Err("amount too low to createe receiver account".into());
+                } else {
+                    (*receiver_info).balance += amount;
+                    receiver_increment_res = Ok(());
+                }
+            });
+        receiver_increment_res?;
 
         self.accounts.entry(sender).and_modify(|sender_info|{
-            (*sender_info).balance -= amount
+            (*sender_info).balance -= amount;
         });
 
         Ok(())
