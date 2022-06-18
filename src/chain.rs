@@ -66,6 +66,7 @@ impl Chain {
 
         match transaction.operation {
             Operation::Empty => self.empty_operation(),
+            Operation::Panic => self.panic_operation(),
             Operation::DestroyAccount { account_id } =>
                 self.destroy_account(account_id),
             Operation::TransferFund { sender, receiver, amount } =>
@@ -139,6 +140,10 @@ impl Chain {
 
     pub fn empty_operation(&mut self) -> TransactionResult {
         Ok(())
+    }
+
+    pub fn panic_operation(&mut self) -> TransactionResult {
+        panic!("A panic becaused operation demands..")
     }
 
     pub fn add_block(&mut self, new_block: Block) -> TransactionResult {

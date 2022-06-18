@@ -10,6 +10,7 @@ pub type TransactionResult = Result<(), &'static str>;
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub enum Operation {
     Empty,
+    Panic,
     DestroyAccount {
         account_id: AccountId,
     },
@@ -33,7 +34,8 @@ pub struct Transaction {
 impl Operation {
     pub fn is_privilaged(&self, origin: &Origin) -> bool {
         match self {
-            Operation::Empty => true,
+            Operation::Empty | Operation::Panic =>
+                true,
             Operation::DestroyAccount { account_id } =>
                 origin.signed() == Some(account_id),
             Operation::TransferFund { sender, .. } =>
