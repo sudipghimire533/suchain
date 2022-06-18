@@ -21,4 +21,8 @@ impl Hash {
 
         Hash(output)
     }
+
+    pub fn difficulty_verified(&self, difficulty_level: usize) -> bool {
+        self.0.starts_with(&vec![0u8; difficulty_level])
+    }
 }

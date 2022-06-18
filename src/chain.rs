@@ -1,10 +1,13 @@
 use std::collections::HashMap;
+use std::time::Duration;
 
 use crate::components::AccountId;
 use crate::components::Balance;
 use crate::components::block::Block;
+use crate::components::block::BlockCollection;
 use crate::components::hash::Hash;
-use crate::components::consensus::ProffOfWork;
+use crate::components::consensus::Consensus;
+use crate::components::consensus::ProofOfWork;
 use crate::components::transaction::Operation;
 use crate::components::transaction::Transaction;
 use crate::components::transaction::TransactionResult;
@@ -12,7 +15,8 @@ use crate::components::transaction::TransactionResult;
 pub struct ChainProperties {
     pub exestinsial_deposit: Balance,
     pub difficulty: usize,
-    consensus: ProffOfWork,
+    pub time_tolorant: Duration,
+    pub consensus: ProofOfWork,
 }
 
 pub type MappedAccountInfo = HashMap<AccountId, AccountInfo>;
@@ -32,7 +36,7 @@ impl Default for AccountInfo {
 
 pub struct Chain {
     pub chain_info: &'static str,
-    pub blocks: Vec<Block>,
+    pub blocks: BlockCollection,
     pub accounts: MappedAccountInfo,
     pub properties: ChainProperties,
     system_account: AccountId,
@@ -120,9 +124,9 @@ impl Chain {
         let system_account = self.system_account.clone();
         self.transfer_fund(system_account, receiver, amount, true)
             .map_err(|err| {
-                match err {
+                match err.as_ref() {
                     "sender balance too low"
-                        | "can't kill sender" => "system allowence too low",
+                        | "can't kill sender" => "system allowence too low".into(),
                     _ => err
                 }
             })
@@ -147,6 +151,6 @@ impl Chain {
     }
 
     pub fn add_block(&mut self, new_block: Block) -> TransactionResult {
-        todo!()
+        <ProofOfWork as Consensus>::add_new_block(self, new_block)
     }
 }

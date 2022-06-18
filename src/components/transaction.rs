@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use serde::Serialize;
 
 use crate::components::AccountId;
@@ -5,7 +7,7 @@ use crate::components::origin::Origin;
 use crate::components::Balance;
 
 pub type TransactionCollection = Vec<Transaction>;
-pub type TransactionResult = Result<(), &'static str>;
+pub type TransactionResult = Result<(), Cow<'static, str>>;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub enum Operation {

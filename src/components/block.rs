@@ -1,3 +1,4 @@
+use crate::components::current_timestamp;
 use crate::components::hash::Hash;
 use crate::components::Nonce;
 use crate::components::BlockNumber;
@@ -5,11 +6,14 @@ use crate::components::transaction::TransactionCollection;
 
 use serde::Serialize;
 
+pub type BlockCollection = Vec<Block>;
+
 #[derive(Clone, Debug, Eq, Serialize)]
 pub struct BlockHeader {
     pub parent_block: Hash,
     pub nonce: Nonce,
     pub height: BlockNumber,
+    pub timetamp: u64,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
@@ -38,6 +42,7 @@ impl Block {
                 parent_block: parent_hash,
                 nonce,
                 height: block_height,
+                timetamp: current_timestamp(),
             },
             transactions,
         }
