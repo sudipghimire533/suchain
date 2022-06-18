@@ -32,6 +32,9 @@ fn main() -> Result<(), i32> {
 
         stdin().read_line(&mut input).expect("Error while reading input..");
         input = input.trim().to_string();
+        if input.is_empty() {
+            continue;
+        }
         println!(">>{input}");
 
         let command = Command::construct(input);
@@ -145,7 +148,7 @@ println!(r##"
 fn show_node(node: &mut Option<Chain>) {
     match node {
         None => println!("None"),
-        Some(val) => println!("{val:#?}")
+        Some(val) => println!("{val}")
     }
     
 }

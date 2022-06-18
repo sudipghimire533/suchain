@@ -1,17 +1,24 @@
-use serde::Serialize;
 use sha3::Digest;
 use crate::components::SuHasher;
 use crate::components::SU_HASHER_LEN;
 
-#[derive(Clone, PartialEq, Eq, Serialize, Hash)]
-pub struct Hash([u8; SU_HASHER_LEN]);
+use serde::Deserialize;
+use serde::Serialize;
 
-impl core::fmt::Debug for Hash {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let hex_rep = hex::encode(&self.0);
-        write!(f, "0x{hex_rep}")
-    }
+#[derive(Serialize, Deserialize)]
+#[serde(transparent)]
+struct PrettyHash(String);
+impl From<Hash> for PrettyHash {
+     fn from(src: Hash) -> Self {
+        PrettyHash(
+            format!("0x{}", hex::encode(src.0.to_vec()))
+        )
+     }
 }
+
+#[derive(Clone, PartialEq, Eq, Serialize, Hash, Deserialize)]
+#[serde(into = "PrettyHash")]
+pub struct Hash([u8; SU_HASHER_LEN]);
 
 impl Hash {
     pub fn raw(hash_value: [u8; SU_HASHER_LEN]) -> Self {

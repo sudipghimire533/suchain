@@ -1,15 +1,16 @@
 use std::borrow::Cow;
 
-use serde::Serialize;
-
 use crate::components::AccountId;
 use crate::components::origin::Origin;
 use crate::components::Balance;
 
+use serde::Serialize;
+use serde::Deserialize;
+
 pub type TransactionCollection = Vec<Transaction>;
 pub type TransactionResult = Result<(), Cow<'static, str>>;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Operation {
     Empty,
     Panic,
@@ -27,11 +28,20 @@ pub enum Operation {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Transaction {
     pub operation: Operation,
     pub initiator: Origin,
 }
+
+impl core::fmt::Debug for Transaction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let tx_to_string = serde_json::to_string(&self)
+            .map_err(|_| std::fmt::Error)?;
+        write!(f, "{tx_to_string}")
+    }
+}
+
 
 impl Operation {
     pub fn is_privilaged(&self, origin: &Origin) -> bool {

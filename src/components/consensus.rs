@@ -1,3 +1,6 @@
+use serde::Deserialize;
+use serde::Serialize;
+
 use crate::chain::{Chain, ChainProperties};
 use crate::components::block::Block;
 use crate::components::Nonce;
@@ -11,7 +14,7 @@ pub trait Consensus {
     fn add_new_block(chain: &mut Chain, new_block: Block) -> TransactionResult;
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ProofOfWork;
 
 impl Consensus for ProofOfWork {

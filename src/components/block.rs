@@ -9,11 +9,12 @@ use crate::components::transaction::TransactionResult;
 use crate::components::consensus::ProofOfWork;
 use crate::components::consensus::Consensus;
 
+use serde::Deserialize;
 use serde::Serialize;
 
 pub type BlockCollection = Vec<Block>;
 
-#[derive(Clone, Debug, Eq, Serialize)]
+#[derive(Clone, Eq, Serialize, Deserialize)]
 pub struct BlockHeader {
     pub parent_block: Hash,
     pub nonce: Nonce,
@@ -21,7 +22,7 @@ pub struct BlockHeader {
     pub timetamp: u64,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Block {
     pub header: BlockHeader,
     pub transactions: TransactionCollection,

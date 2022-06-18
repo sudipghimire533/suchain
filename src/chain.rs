@@ -2,6 +2,9 @@ use std::collections::HashMap;
 use std::time::Duration;
 use std::borrow::Cow;
 
+use serde::Deserialize;
+use serde::Serialize;
+
 use crate::components::AccountId;
 use crate::components::Balance;
 use crate::components::block::Block;
@@ -13,7 +16,7 @@ use crate::components::transaction::Operation;
 use crate::components::transaction::Transaction;
 use crate::components::transaction::TransactionResult;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ChainProperties {
     pub exestinsial_deposit: Balance,
     pub difficulty: usize,
@@ -23,7 +26,7 @@ pub struct ChainProperties {
 
 pub type MappedAccountInfo = HashMap<AccountId, AccountInfo>;
 
-#[derive(PartialEq, Eq, Debug, Clone)]
+#[derive(PartialEq, Eq, Deserialize, Serialize, Clone)]
 pub struct AccountInfo {
     balance: Balance,
 }
@@ -36,13 +39,21 @@ impl Default for AccountInfo {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Chain {
     pub chain_info: Cow<'static, str>,
     pub blocks: BlockCollection,
     pub accounts: MappedAccountInfo,
     pub properties: ChainProperties,
     system_account: AccountId,
+}
+
+impl core::fmt::Display for Chain {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let chain_as_json = serde_json::to_string_pretty(&self)
+            .map_err(|e| std::fmt::Error)?;
+        write!(f, "{chain_as_json}")
+    }
 }
 
 impl Chain {

@@ -1,7 +1,9 @@
-use serde::Serialize;
 use crate::components::AccountId;
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+use serde::Serialize;
+use serde::Deserialize;
+
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Origin {
     Signed(AccountId),
     Root,
