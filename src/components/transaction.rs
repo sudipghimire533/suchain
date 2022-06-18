@@ -18,6 +18,10 @@ pub enum Operation {
         receiver: AccountId,
         amount: Balance,
     },
+    Airdrop {
+        receiver: AccountId,
+        amount: Balance,
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -34,6 +38,8 @@ impl Operation {
                 origin.signed() == Some(account_id),
             Operation::TransferFund { sender, .. } =>
                 origin.signed() == Some(sender),
+            Operation::Airdrop { receiver, .. } =>
+                origin.signed() == Some(receiver)
         }
     }
 }

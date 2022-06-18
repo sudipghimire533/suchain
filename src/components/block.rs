@@ -2,6 +2,7 @@ use crate::components::hash::Hash;
 use crate::components::Nonce;
 use crate::components::BlockNumber;
 use crate::components::transaction::TransactionCollection;
+
 use serde::Serialize;
 
 #[derive(Clone, Debug, Eq, Serialize)]
@@ -26,9 +27,26 @@ impl PartialEq for BlockHeader {
 }
 
 impl Block {
+    pub fn get_genesis() -> Self {
+        let block_height: BlockNumber = 1u32.into();
+        let parent_hash: Hash = Hash::raw([0u8; 32]);
+        let nonce: Nonce = 0u32.into();
+        let transactions = vec![];
+
+        Block {
+            header: BlockHeader {
+                parent_block: parent_hash,
+                nonce,
+                height: block_height,
+            },
+            transactions,
+        }
+    }
+
     pub fn get_hash(&self) -> Hash {
-        let _block_as_json = serde_json::to_string(self)
+        let block_as_json = serde_json::to_string(self)
             .expect("Cannot represent Block{} as json string");
-        todo!()
+        
+        Hash::new(block_as_json.as_bytes())
     }
 }
