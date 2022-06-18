@@ -16,8 +16,24 @@ impl From<Hash> for PrettyHash {
      }
 }
 
+impl From<PrettyHash> for Hash {
+    fn from(src: PrettyHash) -> Self {
+        let hash_string = {
+            if src.0.starts_with("0x") {
+                &src.0[2..]
+            } else {
+                &src.0[..]
+            }
+        };
+
+        let bytes = hex::decode(hash_string).expect("Invalid hex value");
+        Hash(bytes.try_into().expect("Unexpected hash length"))
+    }
+}
+
 #[derive(Clone, PartialEq, Eq, Serialize, Hash, Deserialize)]
 #[serde(into = "PrettyHash")]
+#[serde(from = "PrettyHash")]
 pub struct Hash([u8; SU_HASHER_LEN]);
 
 impl Hash {

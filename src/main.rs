@@ -9,6 +9,7 @@ pub mod chain;
 
 use chain::ChainProperties;
 use chain::Chain;
+use components::consensus::Consensus;
 use components::consensus::ProofOfWork;
 use components::Balance;
 use components::AccountId;
@@ -24,6 +25,13 @@ fn main() -> Result<(), i32> {
     println!(".\n.\n.\n.\n.\n");
 
     let mut node: Option<Chain> = None;
+
+    let some_address = AccountId::new("Alice");
+    println!("Some address: {}", serde_json::to_string(&some_address).unwrap());
+    let command = r##"do_operation { "operation": { "Airdrop": { "receiver": "0xada0018bcd09ed8fc81b323331950a89541d2416fc08b8b1de496d2dd35826b3", "amount": 100 } }, "initiator": {"Signed": "0xada0018bcd09ed8fc81b323331950a89541d2416fc08b8b1de496d2dd35826b3"} }"##;
+    let cmd = Command::construct(command.to_string());
+    println!("{cmd:?}");
+
 
     loop {
         print!("\n>>");
@@ -54,6 +62,7 @@ pub enum Command {
         allowance: Balance,
         minimum_balance: Balance,
     },
+    Operation(Transaction),
     Error(String),
     Unknown(String),
 }
@@ -76,19 +85,34 @@ impl Command {
             "show_node" | "show" => Command::ShowNode,
             "clear" | "cls" => Command::Clear,
             "new_node" | "create_node" => {
-                let cmd = format!("{{\"NewNode\": {rest}}}");
-                let res = serde_json::from_str(cmd.as_str())
-                    .map_err(|err|{
+                match serde_json::from_str(format!("{{\"NewNode\": {rest}}}").as_str()) {
+                    Ok(a) => a,
+                    Err(err) => {
                         Command::Error(
                             format!("While parsing NewNode. Error: {:?}", err)
                         )
-                    });
-                match res {
-                    Ok(a) => a,
-                    Err(a) => a,
+
+                    },
                 }
             }
-            cmd => Command::Unknown(cmd.to_string()),
+            "do_transaction" | "do_operation" => {
+                match serde_json::from_str(format!("{{\"Operation\": {rest}}}").as_str()) {
+                    Ok(a) => a,
+                    Err(err) => {
+                        Command::Error(
+                            format!("While parsing Operation. Error: {:?}", err)
+                        )
+
+                    },
+                }
+            }
+            cmd => {
+                let convert_res = serde_json::from_str(input.as_str());
+                match convert_res {
+                    Ok(v) => v,
+                    Err(_) => Command::Unknown(cmd.to_string()),
+                }
+            },
         }
     }
 
@@ -102,10 +126,30 @@ impl Command {
                 new_node(node, difficulty, allowance, minimum_balance),
             Command::Unknown(command) => unknown_command(&command),
             Command::Error(err) => println!("Error parsing comand: {err}"),
+            Command::Operation(op) => perform_operation(node, op),
         }
     }
 }
 
+fn perform_operation(node_container: &mut Option<Chain>, transaction: Transaction) {
+    match node_container {
+        None => println!("No node loaded. Use new_node operation first"),
+        Some(node) => {
+            let mut block = Block::new(node);
+            block.transactions.push(transaction);
+ 
+            let prep_res = <ProofOfWork as Consensus>::prepare_block(node, &mut block);
+            if let Err(prep_err) = prep_res {
+                println!("While preparing block with this transaction. {prep_err:?}");
+            }
+
+            let add_res = node.add_block(block);
+            if let Err(tx_err) = add_res {
+                println!("Can not perform this transaction. While adding block Error: {tx_err:?}");
+            }
+        }
+    }
+}
 
 fn new_node(
     node_container: &mut Option<Chain>,
