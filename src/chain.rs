@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::time::Duration;
+use std::borrow::Cow;
 
 use crate::components::AccountId;
 use crate::components::Balance;
@@ -37,7 +38,7 @@ impl Default for AccountInfo {
 
 #[derive(Clone, Debug)]
 pub struct Chain {
-    pub chain_info: &'static str,
+    pub chain_info: Cow<'static, str>,
     pub blocks: BlockCollection,
     pub accounts: MappedAccountInfo,
     pub properties: ChainProperties,
@@ -45,7 +46,7 @@ pub struct Chain {
 }
 
 impl Chain {
-    pub fn new(chain_info: &'static str,
+    pub fn new(chain_info: Cow<'static, str>,
                properties: ChainProperties,
                system_allowance: Balance,
                ) -> Self
