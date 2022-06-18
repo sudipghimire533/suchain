@@ -2,6 +2,7 @@ pub mod block;
 pub mod hash;
 pub mod transaction;
 pub mod origin;
+pub mod consensus;
 
 pub type Nonce = u32;
 pub type BlockNumber = u64;

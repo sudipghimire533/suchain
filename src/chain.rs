@@ -4,12 +4,15 @@ use crate::components::AccountId;
 use crate::components::Balance;
 use crate::components::block::Block;
 use crate::components::hash::Hash;
+use crate::components::consensus::ProffOfWork;
 use crate::components::transaction::Operation;
 use crate::components::transaction::Transaction;
 use crate::components::transaction::TransactionResult;
 
 pub struct ChainProperties {
     pub exestinsial_deposit: Balance,
+    pub difficulty: usize,
+    consensus: ProffOfWork,
 }
 
 pub type MappedAccountInfo = HashMap<AccountId, AccountInfo>;
@@ -136,5 +139,9 @@ impl Chain {
 
     pub fn empty_operation(&mut self) -> TransactionResult {
         Ok(())
+    }
+
+    pub fn add_block(&mut self, new_block: Block) -> TransactionResult {
+        todo!()
     }
 }
